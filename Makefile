@@ -27,7 +27,7 @@ $(PROJECT): $(SOURCE)
 build: $(PROJECT)
 	docker build -t $(DOCKER_REPO) .
 
-push: docker-build
+push: build
 	docker push $(DOCKER_REPO)
 
 pull:
