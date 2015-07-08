@@ -28,6 +28,10 @@ import (
 	httptransport "github.com/go-kit/kit/transport/http"
 )
 
+const httpAddr = ":80"
+const debugAddr = ":8000"
+const grpcAddr = ":8001"
+
 var defaultTimestampUTCNano kitlog.Valuer = func() interface{} {
 	return time.Now().UTC().Format(time.RFC3339Nano)
 }
@@ -41,14 +45,10 @@ func main() {
 		redisDB   = fs.Int64("redis.db", 0, "Redis server database")
 
 		shortenProto = fs.String("short.proto", "http", "Protocol to use for short urls")
-		shortenHost  = fs.String("short.host", "localhost:8001", "Host to use for short urls")
+		shortenHost  = fs.String("short.host", "localhost", "Host to use for short urls")
 	)
 	flag.Usage = fs.Usage // only show our flags
 	fs.Parse(os.Args[1:])
-
-	for _, e := range os.Environ() {
-		fmt.Println(e)
-	}
 
 	// `package log` domain
 	var logger kitlog.Logger
@@ -102,9 +102,9 @@ func main() {
 
 	// Transport: HTTP (debug/instrumentation)
 	go func() {
-		logger.Log("addr", ":8000", "transport", "debug")
+		logger.Log("addr", debugAddr, "transport", "debug")
 		http.Handle("/metrics", prometheus.Handler())
-		errc <- http.ListenAndServe(":8000", nil)
+		errc <- http.ListenAndServe(debugAddr, nil)
 	}()
 
 	// Transport: HTTP (JSON)
@@ -131,13 +131,13 @@ func main() {
 		router.Path("/{key:([a-zA-Z0-9]+$)}").Methods("GET").HandlerFunc(resolveHandler)
 		router.Path("/latest/{count:[0-9]+}").Methods("GET").HandlerFunc(latestHandler)
 
-		logger.Log("addr", ":8001", "transport", "HTTP/JSON")
-		errc <- http.ListenAndServe(":8001", logging.Handler(logger, router))
+		logger.Log("addr", httpAddr, "transport", "HTTP/JSON")
+		errc <- http.ListenAndServe(httpAddr, logging.Handler(logger, router))
 	}()
 
 	// Transport: gRPC
 	go func() {
-		ln, err := net.Listen("tcp", ":8002")
+		ln, err := net.Listen("tcp", grpcAddr)
 		if err != nil {
 			errc <- err
 			return
@@ -148,7 +148,7 @@ func main() {
 			resolve: resolveEndpoint,
 			latest:  latestEndpoint,
 		})
-		logger.Log("addr", ":8002", "transport", "gRPC")
+		logger.Log("addr", grpcAddr, "transport", "gRPC")
 		errc <- s.Serve(ln)
 	}()
 
