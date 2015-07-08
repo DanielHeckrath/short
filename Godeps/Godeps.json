@@ -1,0 +1,134 @@
+{
+	"ImportPath": "github.com/DanielHeckrath/short",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "bitbucket.org/ww/goautoneg",
+			"Comment": "null-5",
+			"Rev": "75cd24fc2f2c2a2088577d12123ddee5f54e0675"
+		},
+		{
+			"ImportPath": "github.com/beorn7/perks/quantile",
+			"Rev": "b965b613227fddccbfffe13eae360ed3fa822f8d"
+		},
+		{
+			"ImportPath": "github.com/bradfitz/http2",
+			"Rev": "f8202bc903bda493ebba4aa54922d78430c2c42f"
+		},
+		{
+			"ImportPath": "github.com/codahale/hdrhistogram",
+			"Rev": "fd3681c2262ca0935722dbf8c536d5599e629aef"
+		},
+		{
+			"ImportPath": "github.com/go-kit/kit/endpoint",
+			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+		},
+		{
+			"ImportPath": "github.com/go-kit/kit/log",
+			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+		},
+		{
+			"ImportPath": "github.com/go-kit/kit/metrics",
+			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+		},
+		{
+			"ImportPath": "github.com/go-kit/kit/transport/http",
+			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "f78e6df1618bbffcfc67c1e006a088d834081226"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+		},
+		{
+			"ImportPath": "github.com/juju/errors",
+			"Rev": "4567a5e69fd3130ca0d89f69478e7ac025b67452"
+		},
+		{
+			"ImportPath": "github.com/matttproud/golang_protobuf_extensions/pbutil",
+			"Rev": "fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/model",
+			"Comment": "0.6.0-17-g3b16b46",
+			"Rev": "3b16b46a713f181888e5e9a1205ccc34d6917fb9"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/prometheus",
+			"Comment": "0.6.0-17-g3b16b46",
+			"Rev": "3b16b46a713f181888e5e9a1205ccc34d6917fb9"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_golang/text",
+			"Comment": "0.6.0-17-g3b16b46",
+			"Rev": "3b16b46a713f181888e5e9a1205ccc34d6917fb9"
+		},
+		{
+			"ImportPath": "github.com/prometheus/client_model/go",
+			"Comment": "model-0.0.2-12-gfa8ad6f",
+			"Rev": "fa8ad6fec33561be4280a8f0514318c79d7f6cb6"
+		},
+		{
+			"ImportPath": "github.com/prometheus/procfs",
+			"Rev": "c91d8eefde16bd047416409eb56353ea84a186e4"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "933937213561306ee71d265fb8a2913f20a55123"
+		},
+		{
+			"ImportPath": "golang.org/x/net/internal/timeseries",
+			"Rev": "933937213561306ee71d265fb8a2913f20a55123"
+		},
+		{
+			"ImportPath": "golang.org/x/net/trace",
+			"Rev": "933937213561306ee71d265fb8a2913f20a55123"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "b5adcc2dcdf009d0391547edc6ecbaff889f5bb9"
+		},
+		{
+			"ImportPath": "google.golang.org/cloud/compute/metadata",
+			"Rev": "41498351129b49ec293563bbbf5c688627a8094f"
+		},
+		{
+			"ImportPath": "google.golang.org/cloud/internal",
+			"Rev": "41498351129b49ec293563bbbf5c688627a8094f"
+		},
+		{
+			"ImportPath": "google.golang.org/grpc",
+			"Rev": "7d85210cf5f6226e535b849bd9893875e3822e7c"
+		},
+		{
+			"ImportPath": "gopkg.in/bsm/ratelimit.v1",
+			"Rev": "bda20d5067a03094fc6762f7ead53027afac5f28"
+		},
+		{
+			"ImportPath": "gopkg.in/bufio.v1",
+			"Comment": "v1",
+			"Rev": "567b2bfa514e796916c4747494d6ff5132a1dfce"
+		},
+		{
+			"ImportPath": "gopkg.in/logfmt.v0",
+			"Rev": "c50dc9aa845e681529d8e49d3dc11ec0195aacac"
+		},
+		{
+			"ImportPath": "gopkg.in/redis.v3",
+			"Comment": "v3.1.5",
+			"Rev": "2cfe5df7d2593e20161594e4c02ebb305c9ccd8e"
+		},
+		{
+			"ImportPath": "gopkg.in/stack.v1",
+			"Comment": "v1.1",
+			"Rev": "3311a467df6af5844aa1b9d748e4d004b109b984"
+		}
+	]
+}
