@@ -153,6 +153,7 @@ func main() {
 		pb.RegisterShortServer(s, grpcBinding{
 			shorten: shortenEndpoint,
 			resolve: resolveEndpoint,
+			info:    infoEndpoint,
 			latest:  latestEndpoint,
 		})
 		logger.Log("addr", grpcAddr, "transport", "gRPC")
