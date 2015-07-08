@@ -19,6 +19,7 @@ const counter = "__counter__"
 type Shortener interface {
 	Shorten(context.Context, string) (*pb.ShortURL, error)
 	Resolve(context.Context, string) (*pb.ShortURL, error)
+	Info(context.Context, string) (*pb.ShortURL, error)
 	Latest(context.Context, int64) ([]*pb.ShortURL, error)
 }
 
@@ -126,6 +127,16 @@ func (s *shortener) Resolve(ctx context.Context, key string) (*pb.ShortURL, erro
 
 	if err != nil {
 		return nil, errors.Annotatef(err, "Unable to increase click count for key: %s", key)
+	}
+
+	return url, nil
+}
+
+func (s *shortener) Info(ctx context.Context, key string) (*pb.ShortURL, error) {
+	url, err := s.load(key)
+
+	if err != nil {
+		return nil, errors.Annotatef(err, "Unable to load short url for key: %s", key)
 	}
 
 	return url, nil

@@ -12,6 +12,7 @@ import (
 type grpcBinding struct {
 	shorten endpoint.Endpoint
 	resolve endpoint.Endpoint
+	info    endpoint.Endpoint
 	latest  endpoint.Endpoint
 }
 
@@ -29,6 +30,36 @@ func (b grpcBinding) Resolve(ctx0 context.Context, req *pb.ResolveRequest) (*pb.
 			return
 		}
 		resp, ok := r.(*pb.ResolveResponse)
+		if !ok {
+			errs <- endpoint.ErrBadCast
+			return
+		}
+		replies <- resp
+	}()
+	select {
+	case <-ctx.Done():
+		return nil, context.DeadlineExceeded
+	case err := <-errs:
+		return nil, err
+	case reply := <-replies:
+		return reply, nil
+	}
+}
+
+func (b grpcBinding) Info(ctx0 context.Context, req *pb.InfoRequest) (*pb.InfoResponse, error) {
+	var (
+		ctx, cancel = context.WithCancel(ctx0)
+		errs        = make(chan error, 1)
+		replies     = make(chan *pb.InfoResponse, 1)
+	)
+	defer cancel()
+	go func() {
+		r, err := b.info(ctx, req)
+		if err != nil {
+			errs <- err
+			return
+		}
+		resp, ok := r.(*pb.InfoResponse)
 		if !ok {
 			errs <- endpoint.ErrBadCast
 			return

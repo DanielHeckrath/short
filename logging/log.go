@@ -39,6 +39,14 @@ func (s *loggingShortener) Resolve(ctx context.Context, key string) (res *pb.Sho
 	return
 }
 
+func (s *loggingShortener) Info(ctx context.Context, key string) (res *pb.ShortURL, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log("method", "Info", "key", key, "result", res, "took", time.Since(begin))
+	}(time.Now())
+	res, err = s.shortener.Info(ctx, key)
+	return
+}
+
 func (s *loggingShortener) Latest(ctx context.Context, count int64) (res []*pb.ShortURL, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log("method", "Latest", "count", count, "result", res, "took", time.Since(begin))

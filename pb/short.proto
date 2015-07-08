@@ -5,6 +5,7 @@ package pb;
 service Short {
     rpc Shorten (ShortenRequest) returns (ShortenResponse);
     rpc Resolve (ResolveRequest) returns (ResolveResponse);
+    rpc Info (InfoRequest) returns (InfoResponse);
     rpc Latest (LatestRequest) returns (LatestResponse);
 }
 
@@ -29,6 +30,14 @@ message ResolveRequest {
 }
 
 message ResolveResponse {
+    ShortURL url = 1;
+}
+
+message InfoRequest {
+    string key = 1;
+}
+
+message InfoResponse {
     ShortURL url = 1;
 }
 

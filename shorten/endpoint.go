@@ -55,6 +55,30 @@ func NewResolveEndpoint(s Shortener) endpoint.Endpoint {
 	}
 }
 
+// NewInfoEndpoint returns a new endpoint for a shorteners info function
+func NewInfoEndpoint(s Shortener) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		select {
+		default:
+		case <-ctx.Done():
+			return nil, endpoint.ErrContextCanceled
+		}
+
+		req, ok := request.(*pb.InfoRequest)
+		if !ok {
+			return nil, endpoint.ErrBadCast
+		}
+
+		url, err := s.Info(ctx, req.Key)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return &pb.InfoResponse{Url: url}, nil
+	}
+}
+
 // NewLatestEndpoint returns a new endpoint for a shorteners shorten function
 func NewLatestEndpoint(s Shortener) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {

@@ -14,6 +14,8 @@ It has these top-level messages:
 	ShortenResponse
 	ResolveRequest
 	ResolveResponse
+	InfoRequest
+	InfoResponse
 	LatestRequest
 	LatestResponse
 */
@@ -91,6 +93,29 @@ func (m *ResolveResponse) GetUrl() *ShortURL {
 	return nil
 }
 
+type InfoRequest struct {
+	Key string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+}
+
+func (m *InfoRequest) Reset()         { *m = InfoRequest{} }
+func (m *InfoRequest) String() string { return proto.CompactTextString(m) }
+func (*InfoRequest) ProtoMessage()    {}
+
+type InfoResponse struct {
+	Url *ShortURL `protobuf:"bytes,1,opt,name=url" json:"url,omitempty"`
+}
+
+func (m *InfoResponse) Reset()         { *m = InfoResponse{} }
+func (m *InfoResponse) String() string { return proto.CompactTextString(m) }
+func (*InfoResponse) ProtoMessage()    {}
+
+func (m *InfoResponse) GetUrl() *ShortURL {
+	if m != nil {
+		return m.Url
+	}
+	return nil
+}
+
 type LatestRequest struct {
 	Count int64 `protobuf:"varint,1,opt,name=count" json:"count,omitempty"`
 }
@@ -122,6 +147,7 @@ func init() {
 type ShortClient interface {
 	Shorten(ctx context.Context, in *ShortenRequest, opts ...grpc.CallOption) (*ShortenResponse, error)
 	Resolve(ctx context.Context, in *ResolveRequest, opts ...grpc.CallOption) (*ResolveResponse, error)
+	Info(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*InfoResponse, error)
 	Latest(ctx context.Context, in *LatestRequest, opts ...grpc.CallOption) (*LatestResponse, error)
 }
 
@@ -151,6 +177,15 @@ func (c *shortClient) Resolve(ctx context.Context, in *ResolveRequest, opts ...g
 	return out, nil
 }
 
+func (c *shortClient) Info(ctx context.Context, in *InfoRequest, opts ...grpc.CallOption) (*InfoResponse, error) {
+	out := new(InfoResponse)
+	err := grpc.Invoke(ctx, "/pb.Short/Info", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shortClient) Latest(ctx context.Context, in *LatestRequest, opts ...grpc.CallOption) (*LatestResponse, error) {
 	out := new(LatestResponse)
 	err := grpc.Invoke(ctx, "/pb.Short/Latest", in, out, c.cc, opts...)
@@ -165,6 +200,7 @@ func (c *shortClient) Latest(ctx context.Context, in *LatestRequest, opts ...grp
 type ShortServer interface {
 	Shorten(context.Context, *ShortenRequest) (*ShortenResponse, error)
 	Resolve(context.Context, *ResolveRequest) (*ResolveResponse, error)
+	Info(context.Context, *InfoRequest) (*InfoResponse, error)
 	Latest(context.Context, *LatestRequest) (*LatestResponse, error)
 }
 
@@ -196,6 +232,18 @@ func _Short_Resolve_Handler(srv interface{}, ctx context.Context, codec grpc.Cod
 	return out, nil
 }
 
+func _Short_Info_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+	in := new(InfoRequest)
+	if err := codec.Unmarshal(buf, in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(ShortServer).Info(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func _Short_Latest_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
 	in := new(LatestRequest)
 	if err := codec.Unmarshal(buf, in); err != nil {
@@ -219,6 +267,10 @@ var _Short_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Resolve",
 			Handler:    _Short_Resolve_Handler,
+		},
+		{
+			MethodName: "Info",
+			Handler:    _Short_Info_Handler,
 		},
 		{
 			MethodName: "Latest",

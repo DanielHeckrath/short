@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -15,79 +16,68 @@ import (
 	"github.com/go-kit/kit/metrics/statsd"
 )
 
+func makeInstrumentation(namespace, name, helpCounter, helpDuration string) (metrics.Counter, metrics.TimeHistogram) {
+	counter := metrics.NewMultiCounter(
+		expvar.NewCounter(fmt.Sprintf("requests_%s", name)),
+		statsd.NewCounter(ioutil.Discard, fmt.Sprintf("requests_%s_total", name), time.Second),
+		prometheus.NewCounter(stdprometheus.CounterOpts{
+			Namespace: namespace,
+			Subsystem: name,
+			Name:      "requests_total",
+			Help:      helpCounter,
+		}, []string{}),
+	)
+	duration := metrics.NewTimeHistogram(time.Nanosecond, metrics.NewMultiHistogram(
+		expvar.NewHistogram(fmt.Sprintf("duration_%s_nanoseconds_total", name), 0, 1e9, 3, 50, 95, 99),
+		statsd.NewHistogram(ioutil.Discard, fmt.Sprintf("duration_%s_nanoseconds_total", name), time.Second),
+		prometheus.NewSummary(stdprometheus.SummaryOpts{
+			Namespace: namespace,
+			Subsystem: name,
+			Name:      "duration_nanoseconds_total",
+			Help:      helpDuration,
+		}, []string{}),
+	))
+
+	return counter, duration
+}
+
 // Instrument wraps a shorten function with instrumentation
 func Instrument(s shorten.Shortener) shorten.Shortener {
 	// `package metrics` domain
-	requestsShorten := metrics.NewMultiCounter(
-		expvar.NewCounter("requests_shorten"),
-		statsd.NewCounter(ioutil.Discard, "requests_shorten_total", time.Second),
-		prometheus.NewCounter(stdprometheus.CounterOpts{
-			Namespace: "shortener",
-			Subsystem: "shorten",
-			Name:      "requests_total",
-			Help:      "Total number of received shorten requests.",
-		}, []string{}),
+	requestsShorten, durationShorten := makeInstrumentation(
+		"shortener",
+		"shorten",
+		"Total number of received shorten requests.",
+		"Total nanoseconds spend serving shorten requests.",
 	)
-	durationShorten := metrics.NewTimeHistogram(time.Nanosecond, metrics.NewMultiHistogram(
-		expvar.NewHistogram("duration_shorten_nanoseconds_total", 0, 1e9, 3, 50, 95, 99),
-		statsd.NewHistogram(ioutil.Discard, "duration_shorten_nanoseconds_total", time.Second),
-		prometheus.NewSummary(stdprometheus.SummaryOpts{
-			Namespace: "shortener",
-			Subsystem: "shorten",
-			Name:      "duration_nanoseconds_total",
-			Help:      "Total nanoseconds spend serving shorten requests.",
-		}, []string{}),
-	))
-
-	requestsResolve := metrics.NewMultiCounter(
-		expvar.NewCounter("requests_resolve"),
-		statsd.NewCounter(ioutil.Discard, "requests_resolve_total", time.Second),
-		prometheus.NewCounter(stdprometheus.CounterOpts{
-			Namespace: "shortener",
-			Subsystem: "resolve",
-			Name:      "requests_total",
-			Help:      "Total number of received resolve requests.",
-		}, []string{}),
+	requestsResolve, durationResolve := makeInstrumentation(
+		"shortener",
+		"resolve",
+		"Total number of received resolve requests.",
+		"Total nanoseconds spend serving resolve requests.",
 	)
-	durationResolve := metrics.NewTimeHistogram(time.Nanosecond, metrics.NewMultiHistogram(
-		expvar.NewHistogram("duration_resolve_nanoseconds_total", 0, 1e9, 3, 50, 95, 99),
-		statsd.NewHistogram(ioutil.Discard, "duration_resolve_nanoseconds_total", time.Second),
-		prometheus.NewSummary(stdprometheus.SummaryOpts{
-			Namespace: "shortener",
-			Subsystem: "resolve",
-			Name:      "duration_nanoseconds_total",
-			Help:      "Total nanoseconds spend serving resolve requests.",
-		}, []string{}),
-	))
-
-	requestsLatest := metrics.NewMultiCounter(
-		expvar.NewCounter("requests_latest"),
-		statsd.NewCounter(ioutil.Discard, "requests_latest_total", time.Second),
-		prometheus.NewCounter(stdprometheus.CounterOpts{
-			Namespace: "shortener",
-			Subsystem: "latest",
-			Name:      "requests_total",
-			Help:      "Total number of received latest requests.",
-		}, []string{}),
+	requestsLatest, durationLatest := makeInstrumentation(
+		"shortener",
+		"latest",
+		"Total number of received latest requests.",
+		"Total nanoseconds spend serving latest requests.",
 	)
-	durationLatest := metrics.NewTimeHistogram(time.Nanosecond, metrics.NewMultiHistogram(
-		expvar.NewHistogram("duration_latest_nanoseconds_total", 0, 1e9, 3, 50, 95, 99),
-		statsd.NewHistogram(ioutil.Discard, "duration_latest_nanoseconds_total", time.Second),
-		prometheus.NewSummary(stdprometheus.SummaryOpts{
-			Namespace: "shortener",
-			Subsystem: "latest",
-			Name:      "duration_nanoseconds_total",
-			Help:      "Total nanoseconds spend serving latest requests.",
-		}, []string{}),
-	))
+	requestsInfo, durationInfo := makeInstrumentation(
+		"shortener",
+		"info",
+		"Total number of received info requests.",
+		"Total nanoseconds spend serving info requests.",
+	)
 
 	return &instrumentedShortener{
 		requestsShorten: requestsShorten,
 		requestsResolve: requestsResolve,
+		requestsInfo:    requestsInfo,
 		requestsLatest:  requestsLatest,
 
 		durationShorten: durationShorten,
 		durationResolve: durationResolve,
+		durationInfo:    durationInfo,
 		durationLatest:  durationLatest,
 
 		shortener: s,
@@ -97,10 +87,12 @@ func Instrument(s shorten.Shortener) shorten.Shortener {
 type instrumentedShortener struct {
 	requestsShorten metrics.Counter
 	requestsResolve metrics.Counter
+	requestsInfo    metrics.Counter
 	requestsLatest  metrics.Counter
 
 	durationShorten metrics.TimeHistogram
 	durationResolve metrics.TimeHistogram
+	durationInfo    metrics.TimeHistogram
 	durationLatest  metrics.TimeHistogram
 
 	shortener shorten.Shortener
@@ -120,6 +112,14 @@ func (s *instrumentedShortener) Resolve(ctx context.Context, key string) (*pb.Sh
 		s.durationResolve.Observe(time.Since(begin))
 	}(time.Now())
 	return s.shortener.Resolve(ctx, key)
+}
+
+func (s *instrumentedShortener) Info(ctx context.Context, key string) (*pb.ShortURL, error) {
+	defer func(begin time.Time) {
+		s.requestsInfo.Add(1)
+		s.durationInfo.Observe(time.Since(begin))
+	}(time.Now())
+	return s.shortener.Info(ctx, key)
 }
 
 func (s *instrumentedShortener) Latest(ctx context.Context, count int64) ([]*pb.ShortURL, error) {

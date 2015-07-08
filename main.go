@@ -44,8 +44,9 @@ func main() {
 		redisPass = fs.String("redis.pass", "", "Redis server password")
 		redisDB   = fs.Int64("redis.db", 0, "Redis server database")
 
-		shortenProto = fs.String("short.proto", "http", "Protocol to use for short urls")
-		shortenHost  = fs.String("short.host", "localhost", "Host to use for short urls")
+		shortenProto    = fs.String("short.proto", "http", "Protocol to use for short urls")
+		shortenHost     = fs.String("short.host", "localhost", "Host to use for short urls")
+		shortenNotFound = fs.String("short.na", "/", "Redirect address in case no url was found")
 	)
 	flag.Usage = fs.Usage // only show our flags
 	fs.Parse(os.Args[1:])
@@ -89,6 +90,7 @@ func main() {
 
 	shortenEndpoint := shorten.NewShortenEndpoint(s)
 	resolveEndpoint := shorten.NewResolveEndpoint(s)
+	infoEndpoint := shorten.NewInfoEndpoint(s)
 	latestEndpoint := shorten.NewLatestEndpoint(s)
 
 	// Mechanical stuff
@@ -119,7 +121,11 @@ func main() {
 		)
 		resolveHandler := prometheus.InstrumentHandler(
 			"resolve",
-			shorten.NewResolveHandler(ctx, resolveEndpoint, before, after),
+			shorten.NewResolveHandler(ctx, resolveEndpoint, *shortenNotFound),
+		)
+		infoHandler := prometheus.InstrumentHandler(
+			"info",
+			shorten.NewInfoHandler(ctx, infoEndpoint, before, after),
 		)
 		latestHandler := prometheus.InstrumentHandler(
 			"latest",
@@ -129,6 +135,7 @@ func main() {
 		router := mux.NewRouter()
 		router.Path("/shorten").Methods("POST").HandlerFunc(shortenHandler)
 		router.Path("/{key:([a-zA-Z0-9]+$)}").Methods("GET").HandlerFunc(resolveHandler)
+		router.Path("/info/{key:[a-zA-Z0-9]+}").Methods("GET").HandlerFunc(infoHandler)
 		router.Path("/latest/{count:[0-9]+}").Methods("GET").HandlerFunc(latestHandler)
 
 		logger.Log("addr", httpAddr, "transport", "HTTP/JSON")
