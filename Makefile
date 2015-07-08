@@ -7,7 +7,7 @@ DOCKER_REPO = $(ORGANIZATION)/$(PROJECT)
 SOURCE := $(shell find . -name '*.go')
 GOOS := linux
 GOARCH := amd64
-PROJECT_PATH := github.com.com/$(REPO_OWRNER)/$(PROJECT)
+PROJECT_PATH := github.com/$(REPO_OWRNER)/$(PROJECT)
 
 .PHONY=$(PROJECT) docker-build docker-push docker-pull
 
@@ -24,22 +24,16 @@ $(PROJECT): $(SOURCE)
 	    golang:1.4.2-cross \
 	    go build -a -o ./build/$(PROJECT)
 
-build: $(SOURCE)
-	godep go build -a -o ./build/$(PROJECT)
-
-run: build
-	./build/$(PROJECT)
-
-docker-build: $(PROJECT)
+build: $(PROJECT)
 	docker build -t $(DOCKER_REPO) .
 
-docker-push: docker-build
+push: docker-build
 	docker push $(DOCKER_REPO)
 
-docker-pull:
+pull:
 	docker pull $(DOCKER_REPO)
 
-docker-run: docker-build
+run: build
 	docker run \
 		-ti \
 		--rm \

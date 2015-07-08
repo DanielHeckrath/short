@@ -37,11 +37,6 @@ func main() {
 	// of glog. So, we define a new flag set, to keep those domains distinct.
 	fs := flag.NewFlagSet("", flag.ExitOnError)
 	var (
-		debugAddr = fs.String("debug.addr", ":8000", "Address for HTTP debug/instrumentation server")
-		httpAddr  = fs.String("http.addr", ":8001", "Address for HTTP (JSON) server")
-		grpcAddr  = fs.String("grpc.addr", ":8002", "Address for gRPC server")
-
-		redisAddr = fs.String("redis.addr", ":6379", "Redis server address")
 		redisPass = fs.String("redis.pass", "", "Redis server password")
 		redisDB   = fs.Int64("redis.db", 0, "Redis server database")
 
@@ -50,6 +45,10 @@ func main() {
 	)
 	flag.Usage = fs.Usage // only show our flags
 	fs.Parse(os.Args[1:])
+
+	for _, e := range os.Environ() {
+		fmt.Println(e)
+	}
 
 	// `package log` domain
 	var logger kitlog.Logger
@@ -61,8 +60,14 @@ func main() {
 	// Server domain
 
 	// Shortener needs a redis connection
+	redisHost := os.Getenv("REDIS_PORT_6379_TCP_ADDR")
+	redisPort := os.Getenv("REDIS_PORT_6379_TCP_PORT")
+	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+
+	logger.Log("srv", "redis", "addr", redisAddr, "pw", *redisPass, "db", *redisDB)
+
 	client := redis.NewClient(&redis.Options{
-		Addr:     *redisAddr,
+		Addr:     redisAddr,
 		Password: *redisPass, // no password set
 		DB:       *redisDB,   // use default DB
 	})
@@ -75,8 +80,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Log("conn", "redis", "ping", res)
+	logger.Log("srv", "redis", "ping", res)
 
+	logger.Log("srv", "shorten", "proto", *shortenProto, "host", *shortenHost)
 	var s = shorten.New(*shortenProto, *shortenHost, client)
 	s = metrics.Instrument(s)
 	s = logging.Log(logger, s)
@@ -96,9 +102,9 @@ func main() {
 
 	// Transport: HTTP (debug/instrumentation)
 	go func() {
-		logger.Log("addr", *debugAddr, "transport", "debug")
+		logger.Log("addr", ":8000", "transport", "debug")
 		http.Handle("/metrics", prometheus.Handler())
-		errc <- http.ListenAndServe(*debugAddr, nil)
+		errc <- http.ListenAndServe(":8000", nil)
 	}()
 
 	// Transport: HTTP (JSON)
@@ -125,13 +131,13 @@ func main() {
 		router.Path("/{key:([a-zA-Z0-9]+$)}").Methods("GET").HandlerFunc(resolveHandler)
 		router.Path("/latest/{count:[0-9]+}").Methods("GET").HandlerFunc(latestHandler)
 
-		logger.Log("addr", *httpAddr, "transport", "HTTP/JSON")
-		errc <- http.ListenAndServe(*httpAddr, logging.Handler(logger, router))
+		logger.Log("addr", ":8001", "transport", "HTTP/JSON")
+		errc <- http.ListenAndServe(":8001", logging.Handler(logger, router))
 	}()
 
 	// Transport: gRPC
 	go func() {
-		ln, err := net.Listen("tcp", *grpcAddr)
+		ln, err := net.Listen("tcp", ":8002")
 		if err != nil {
 			errc <- err
 			return
@@ -142,7 +148,7 @@ func main() {
 			resolve: resolveEndpoint,
 			latest:  latestEndpoint,
 		})
-		logger.Log("addr", *grpcAddr, "transport", "gRPC")
+		logger.Log("addr", ":8002", "transport", "gRPC")
 		errc <- s.Serve(ln)
 	}()
 
