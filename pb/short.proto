@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package pb;
+
+service Short {
+    rpc Shorten (ShortenRequest) returns (ShortenResponse);
+    rpc Resolve (ResolveRequest) returns (ResolveResponse);
+    rpc Latest (LatestRequest) returns (LatestResponse);
+}
+
+message ShortURL {
+    string key = 1;
+	string short_url = 2;
+	string long_url = 3;
+	int64 creation_date = 4;
+	int64 clicks = 5;
+}
+
+message ShortenRequest {
+    string url = 1;
+}
+
+message ShortenResponse {
+    ShortURL url = 1;
+}
+
+message ResolveRequest {
+    string key = 1;
+}
+
+message ResolveResponse {
+    ShortURL url = 1;
+}
+
+message LatestRequest {
+    int64 count = 1;
+}
+
+message LatestResponse {
+    repeated ShortURL urls = 1;
+}
