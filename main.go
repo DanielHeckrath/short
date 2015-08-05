@@ -54,7 +54,7 @@ func main() {
 	// `package log` domain
 	var logger kitlog.Logger
 	logger = kitlog.NewLogfmtLogger(os.Stderr)
-	logger = kitlog.With(logger, "ts", defaultTimestampUTCNano)
+	logger = kitlog.NewContext(logger).With("ts", defaultTimestampUTCNano)
 	stdlog.SetOutput(kitlog.NewStdlibAdapter(logger)) // redirect stdlib logging to us
 	stdlog.SetFlags(0)                                // flags are handled in our logger
 

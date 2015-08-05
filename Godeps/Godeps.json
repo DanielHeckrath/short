@@ -21,19 +21,19 @@
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/endpoint",
-			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+			"Rev": "cf7b46ced86ae5e2d364bc1f6f1d0bf3b98e3f5b"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/log",
-			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+			"Rev": "cf7b46ced86ae5e2d364bc1f6f1d0bf3b98e3f5b"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/metrics",
-			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+			"Rev": "cf7b46ced86ae5e2d364bc1f6f1d0bf3b98e3f5b"
 		},
 		{
 			"ImportPath": "github.com/go-kit/kit/transport/http",
-			"Rev": "6939b5c9e04e7f80d67ffb5bed4862692221eeca"
+			"Rev": "cf7b46ced86ae5e2d364bc1f6f1d0bf3b98e3f5b"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
