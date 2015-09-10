@@ -31,7 +31,9 @@ func decode(input string) int64 {
 	for index := l - 1; index > -1; index-- {
 		current := string(input[index])
 		pos := strings.Index(symbols, current)
-		sum = sum + (pos * int(math.Pow(floatbase, float64((l-index-1)))))
+		exp := float64(l - index - 1)
+		pow := math.Pow(floatbase, exp)
+		sum = sum + (pos * int(pow))
 	}
 	return int64(sum)
 }
