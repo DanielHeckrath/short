@@ -14,6 +14,10 @@ import (
 )
 
 const counter = "__counter__"
+const keyShortURL = "ShortUrl"
+const keyLongURL = "LongUrl"
+const keyCreationDate = "CreationDate"
+const keyClicks = "Clicks"
 
 // Shortener is the fundamental interface for all shorterning operations
 type Shortener interface {
@@ -41,10 +45,10 @@ type shortener struct {
 func (s *shortener) store(key, shortURL, longURL string) (*pb.ShortURL, error) {
 	url := newShortURL(key, shortURL, longURL)
 	status := s.redis.HMSet(url.Key,
-		"LongUrl", url.LongUrl,
-		"ShortUrl", url.ShortUrl,
-		"CreationDate", fmt.Sprint(url.CreationDate),
-		"Clicks", fmt.Sprint(url.Clicks),
+		keyLongURL, url.LongUrl,
+		keyShortURL, url.ShortUrl,
+		keyCreationDate, fmt.Sprint(url.CreationDate),
+		keyClicks, fmt.Sprint(url.Clicks),
 	)
 
 	if status.Err() != nil {
@@ -55,14 +59,14 @@ func (s *shortener) store(key, shortURL, longURL string) (*pb.ShortURL, error) {
 }
 
 func (s *shortener) load(key string) (*pb.ShortURL, error) {
-	if ok, _ := s.redis.HExists(key, "ShortUrl").Result(); !ok {
+	if ok, _ := s.redis.HExists(key, keyShortURL).Result(); !ok {
 		return nil, errors.New("Unknown key: " + key)
 	}
 
 	url := &pb.ShortURL{}
 	url.Key = key
 
-	res, err := s.redis.HMGet(key, "LongUrl", "ShortUrl", "CreationDate", "Clicks").Result()
+	res, err := s.redis.HMGet(key, keyLongURL, keyShortURL, keyCreationDate, keyClicks).Result()
 
 	if err != nil {
 		return nil, errors.Annotatef(err, "Unable to load values for key: %s", key)
@@ -123,7 +127,7 @@ func (s *shortener) Resolve(ctx context.Context, key string) (*pb.ShortURL, erro
 		return nil, errors.Annotatef(err, "Unable to load short url for key: %s", key)
 	}
 
-	_, err = s.redis.HIncrBy(key, "Clicks", 1).Result()
+	_, err = s.redis.HIncrBy(key, keyClicks, 1).Result()
 
 	if err != nil {
 		return nil, errors.Annotatef(err, "Unable to increase click count for key: %s", key)
