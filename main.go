@@ -134,7 +134,7 @@ func main() {
 
 		router := mux.NewRouter()
 		router.Path("/shorten").Methods("POST").HandlerFunc(shortenHandler)
-		router.Path("/{key:([a-zA-Z0-9]+$)}").Methods("GET").HandlerFunc(resolveHandler)
+		router.Path("/{key:([a-zA-Z0-9]+$)}").Methods("GET", "HEAD").HandlerFunc(resolveHandler)
 		router.Path("/info/{key:[a-zA-Z0-9]+}").Methods("GET").HandlerFunc(infoHandler)
 		router.Path("/latest/{count:[0-9]+}").Methods("GET").HandlerFunc(latestHandler)
 
